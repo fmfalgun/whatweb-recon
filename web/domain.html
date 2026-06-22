@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Domain Detail — WhatWeb Recon</title>
+  <title>Domain Detail — whatweb-recon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,51 +21,56 @@
   </div>
 </nav>
 
-<section class="domain-header">
-  <h1 id="domain-title">—</h1>
-  <p id="queried-at-line">data as of <span id="queried-at">—</span></p>
-</section>
-
-<div id="stats-row" class="stats-row">
-  <div class="stat-badge"><span class="stat-value" id="stat-url-count">—</span><span class="stat-label">URLs Scanned</span></div>
-  <div class="stat-badge"><span class="stat-value" id="stat-server">—</span><span class="stat-label">Server</span></div>
-  <div class="stat-badge"><span class="stat-value" id="stat-cms">—</span><span class="stat-label">CMS</span></div>
-  <div class="stat-badge"><span class="stat-value" id="stat-php">—</span><span class="stat-label">PHP Version</span></div>
+<div class="domain-header">
+  <span class="domain-name-display" id="domain-name-display">—</span>
+  <span class="domain-contributor" id="contributor-meta"></span>
 </div>
 
-<div id="error-box"><span id="error-message"></span></div>
-
-<section class="section" id="section-exposure">
-  <h2 class="section-title">&gt; SECURITY FLAGS</h2>
-  <div id="exposure-flags-row" class="exposure-flags-row">
-    <!-- JS injects flag badges: xmlrpc / cPanel / WHM / phpMyAdmin / phpPgAdmin -->
+<section id="stats-row" class="stats-row">
+  <div class="stat-badge">
+    <span class="stat-value" id="val-url-count">—</span>
+    <span class="stat-label">URLs Scanned</span>
+  </div>
+  <div class="stat-badge">
+    <span class="stat-value" id="val-server">—</span>
+    <span class="stat-label">Server</span>
+  </div>
+  <div class="stat-badge">
+    <span class="stat-value" id="val-cms">—</span>
+    <span class="stat-label">CMS</span>
+  </div>
+  <div class="stat-badge">
+    <span class="stat-value" id="val-php">—</span>
+    <span class="stat-label">PHP</span>
   </div>
 </section>
 
-<section class="section" id="section-results">
-  <h2 class="section-title">&gt; URL RESULTS</h2>
-  <table class="results-table" id="results-table">
-    <thead>
-      <tr>
-        <th>URL</th>
-        <th>Status</th>
-        <th>Server / OS</th>
-        <th>CMS</th>
-        <th>PHP</th>
-        <th>jQuery</th>
-      </tr>
-    </thead>
-    <tbody id="results-tbody"><!-- JS fills this --></tbody>
-  </table>
-</section>
+<main>
 
-<section class="section" id="section-plugins">
-  <h2 class="section-title">&gt; INTERESTING PLUGINS</h2>
-  <div id="plugins-list" class="plugins-list"><!-- JS fills --></div>
-</section>
+  <p id="queried-at-line">data as of <span id="queried-at">—</span></p>
+
+  <div class="section" id="section-flags">
+    <h2 class="section-title">Security Flags</h2>
+    <div id="flags-grid" class="email-security-grid"></div>
+  </div>
+
+  <div class="section" id="section-results">
+    <h2 class="section-title">URL Results</h2>
+    <div id="results-grid" class="records-grid"></div>
+  </div>
+
+  <div class="section" id="section-plugins">
+    <h2 class="section-title">Interesting Plugins</h2>
+    <div id="plugins-list" class="card-stats"></div>
+  </div>
+
+  <div id="error-box" style="display:none"><span id="error-message"></span></div>
+
+</main>
 
 <footer class="site-footer">
   <a href="tech-board.html">← Tech Board</a>
+  &nbsp;·&nbsp; whatweb-recon &nbsp;·&nbsp;
   <a href="https://github.com/fmfalgun/whatweb-recon" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
 </footer>
 

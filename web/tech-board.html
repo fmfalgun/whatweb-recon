@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tech Board — WhatWeb Recon</title>
+  <title>Tech Board — whatweb-recon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
@@ -21,28 +21,38 @@
   </div>
 </nav>
 
-<section class="board-header">
-  <h1>Tech Board</h1>
-  <p>Community-submitted domain fingerprints. Sorted alphabetically.</p>
-  <div id="tb-stats" class="board-stats">
-    <span class="stat-badge"><span class="stat-value" id="stat-domains">—</span><span class="stat-label">Domains</span></span>
-    <span class="stat-badge"><span class="stat-value" id="stat-cms">—</span><span class="stat-label">CMS Found</span></span>
-    <span class="stat-badge"><span class="stat-value" id="stat-eol">—</span><span class="stat-label">EOL PHP</span></span>
-  </div>
-  <div class="board-search-row">
-    <input id="search-input" type="text" class="board-search" placeholder="Filter by domain, server, or CMS...">
+<section class="hero">
+  <h1>TECH <span>BOARD</span></h1>
+  <p class="hero-tagline">Community WhatWeb fingerprints — CMS · server · PHP · plugin exposure · sorted A→Z</p>
+  <div class="hof-subheader">
+    <span id="db-stats">loading...</span>
   </div>
 </section>
 
-<div id="error-box"><span id="error-message"></span></div>
+<main>
 
-<div id="tech-board-grid" class="tech-board-grid">
-  <!-- cards injected by tech-board.js -->
-</div>
+  <div id="db-disclaimer">
+    Web fingerprint data is sourced from public HTTP responses. Results reflect technology state at query time. For educational and authorized testing purposes only.
+  </div>
+
+  <div id="db-howto">
+    <code class="inline-code">python3 whatweb-recon.py -d yourdomain.com --submit</code>
+    <span>→ results appear here after CI processes the submission</span>
+  </div>
+
+  <div id="search-row">
+    <input type="text" id="search-input" placeholder="filter by domain, server, or CMS..." autocomplete="off" spellcheck="false">
+  </div>
+
+  <div id="domain-list">
+    <p class="empty">Loading...</p>
+  </div>
+
+</main>
 
 <footer class="site-footer">
-  <span>Built by <a href="https://fmfalgun.github.io">fmfalgun</a></span>
-  <span>Data via <a href="https://github.com/urbanadventurer/WhatWeb" target="_blank" rel="noopener noreferrer">WhatWeb</a></span>
+  <a href="index.html">← Home</a>
+  &nbsp;·&nbsp; Tech Board &nbsp;·&nbsp;
   <a href="https://github.com/fmfalgun/whatweb-recon" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
 </footer>
 

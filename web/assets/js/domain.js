@@ -1,105 +1,122 @@
 (function () {
-  var params = new URLSearchParams(window.location.search);
-  var d = params.get('d');
-
-  if (!d) {
-    showError('No domain specified. Add ?d=nmap.org to the URL.');
-    return;
+  function param(name) {
+    return new URLSearchParams(window.location.search).get(name);
   }
-
-  fetch('data/domains/' + encodeURIComponent(d) + '.json')
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function (data) { render(data); })
-    .catch(function (e) { showError('Failed to load: ' + e.message); });
-
-  function render(data) {
-    var titleEl = document.getElementById('domain-title');
-    if (titleEl) titleEl.textContent = data.domain || d;
-    var qEl = document.getElementById('queried-at');
-    if (qEl) qEl.textContent = (data.queried_at || '').slice(0, 10);
-
-    setText('stat-url-count', data.url_count || 0);
-    setText('stat-server', data.server || '—');
-    setText('stat-cms', data.cms || 'none');
-    var phpText = data.php_version || 'none';
-    if (data.php_version && /^[2-6]\./.test(data.php_version)) phpText += ' ⚠ EOL';
-    setText('stat-php', phpText);
-
-    renderFlags(data);
-    renderTable(data.results || []);
-    renderPlugins(data.interesting_plugins || []);
-  }
-
-  function renderFlags(data) {
-    var container = document.getElementById('exposure-flags-row');
-    if (!container) return;
-    var CHECKS = [
-      { key: 'xmlrpc',     label: 'xmlrpc.php',  level: 'exposed' },
-      { key: 'cpanel',     label: 'cPanel',       level: 'exposed' },
-      { key: 'whm',        label: 'WHM',          level: 'exposed' },
-      { key: 'phpmyadmin', label: 'phpMyAdmin',   level: 'exposed' },
-      { key: 'phppgadmin', label: 'phpPgAdmin',   level: 'exposed' },
-    ];
-    var found = {};
-    (data.results || []).forEach(function (r) {
-      CHECKS.forEach(function (c) { if (r[c.key]) found[c.key] = true; });
-    });
-    CHECKS.forEach(function (c) {
-      var el = document.createElement('span');
-      el.className = 'flag-badge ' + (found[c.key] ? 'flag-exposed' : 'flag-safe');
-      el.textContent = (found[c.key] ? '⚠ ' : '✓ ') + c.label;
-      container.appendChild(el);
-    });
-  }
-
-  function renderTable(results) {
-    var tbody = document.getElementById('results-tbody');
-    if (!tbody) return;
-    results.forEach(function (r) {
-      var tr = document.createElement('tr');
-      var statusClass = r.http_status >= 200 && r.http_status < 300 ? 'status-2xx' :
-                        r.http_status >= 300 && r.http_status < 400 ? 'status-3xx' : 'status-other';
-      var cmsText = r.cms_detected ? (r.cms_detected + (r.cms_version ? ' ' + r.cms_version : '')) : '—';
-      var serverText = r.server ? (r.server + (r.server_os ? ' / ' + r.server_os : '')) : (r.redirect_url ? '→ ' + r.redirect_url : '—');
-      tr.innerHTML = [
-        '<td class="td-url">' + esc(r.url) + '</td>',
-        '<td class="td-status ' + statusClass + '">' + (r.http_status || '—') + '</td>',
-        '<td class="td-server">' + esc(serverText) + '</td>',
-        '<td class="td-cms">' + esc(cmsText) + '</td>',
-        '<td class="td-php ' + (r.php_version && /^[2-6]\./.test(r.php_version) ? 'php-eol-cell' : '') + '">' + esc(r.php_version || '—') + '</td>',
-        '<td class="td-jquery">' + esc(r.jquery_version || '—') + '</td>',
-      ].join('');
-      tbody.appendChild(tr);
-    });
-  }
-
-  function renderPlugins(plugins) {
-    var container = document.getElementById('plugins-list');
-    if (!container) return;
-    if (!plugins.length) {
-      container.innerHTML = '<span class="empty">No interesting plugins detected.</span>';
-      return;
-    }
-    plugins.forEach(function (p) {
-      var tag = document.createElement('span');
-      tag.className = 'plugin-tag plugin-warn';
-      tag.textContent = p;
-      container.appendChild(tag);
-    });
-  }
-
   function setText(id, val) {
     var el = document.getElementById(id);
-    if (el) el.textContent = val;
+    if (el) el.textContent = val != null ? String(val) : '—';
   }
 
-  function showError(msg) {
-    var box = document.getElementById('error-box');
-    var span = document.getElementById('error-message');
-    if (box && span) { span.textContent = msg; box.style.display = 'block'; }
+  function addESRow(grid, key, val, extraClass) {
+    if (!grid) return;
+    var row = document.createElement('div');
+    row.className = 'es-row';
+    var valClass = 'es-val' + (extraClass ? ' ' + extraClass : '');
+    row.innerHTML = '<span class="es-key">' + key + '</span>' +
+      '<span class="' + valClass + '">' + (val != null && val !== '' ? val : '—') + '</span>';
+    grid.appendChild(row);
   }
 
-  function esc(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
+  var EOL_PHP = /^[2-6]\./;
+
+  document.addEventListener('DOMContentLoaded', function () {
+    var domain = param('d');
+    if (!domain) { window.location.href = 'tech-board.html'; return; }
+
+    fetch('data/domains/' + domain + '.json')
+      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function (d) {
+        setText('domain-name-display', d.domain);
+        var contribEl = document.getElementById('contributor-meta');
+        if (contribEl) {
+          contribEl.textContent = (d.display_name || '') + (d.display_loc ? ' · ' + d.display_loc : '');
+        }
+
+        // Stat badges
+        setText('val-url-count', d.url_count || 0);
+        setText('val-server',    d.server || '—');
+        setText('val-cms',       d.cms || 'none');
+
+        var phpText = d.php_version || 'none';
+        if (d.php_version && EOL_PHP.test(d.php_version)) phpText += ' ⚠ EOL';
+        setText('val-php', phpText);
+
+        setText('queried-at', (d.queried_at || '').slice(0, 10));
+
+        // Security flags grid
+        var flagsGrid = document.getElementById('flags-grid');
+        var results = d.results || [];
+        var xmlrpc     = results.some(function (r) { return r.xmlrpc; });
+        var cpanel     = results.some(function (r) { return r.cpanel; });
+        var whm        = results.some(function (r) { return r.whm; });
+        var phpmyadmin = results.some(function (r) { return r.phpmyadmin; });
+        var phppgadmin = results.some(function (r) { return r.phppgadmin; });
+
+        addESRow(flagsGrid, 'xmlrpc.php', xmlrpc     ? 'EXPOSED' : 'not found', xmlrpc     ? 'es-val-bad' : 'es-val-ok');
+        addESRow(flagsGrid, 'cPanel',     cpanel     ? 'EXPOSED' : 'not found', cpanel     ? 'es-val-bad' : 'es-val-ok');
+        addESRow(flagsGrid, 'WHM',        whm        ? 'EXPOSED' : 'not found', whm        ? 'es-val-bad' : 'es-val-ok');
+        addESRow(flagsGrid, 'phpMyAdmin', phpmyadmin ? 'EXPOSED' : 'not found', phpmyadmin ? 'es-val-bad' : 'es-val-ok');
+        addESRow(flagsGrid, 'phpPgAdmin', phppgadmin ? 'EXPOSED' : 'not found', phppgadmin ? 'es-val-bad' : 'es-val-ok');
+        addESRow(flagsGrid, 'method',     d.method     || '—');
+        addESRow(flagsGrid, 'aggression', d.aggression != null ? d.aggression : '—');
+
+        // Results grid — one record-section per URL
+        var resultsGrid = document.getElementById('results-grid');
+        if (resultsGrid) {
+          results.forEach(function (r) {
+            var sec = document.createElement('div');
+            sec.className = 'record-section';
+
+            var titleText = (r.http_status || '?') + ' · ' + (r.url || '');
+            sec.innerHTML = '<div class="record-title">' + titleText + '</div>';
+
+            var list = document.createElement('div');
+            list.className = 'record-list';
+
+            function addItem(label, val) {
+              if (val == null || val === '' || val === false) return;
+              var item = document.createElement('div');
+              item.className = 'record-item';
+              item.innerHTML = '<span class="record-value"><span style="color:var(--dim);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;min-width:110px;display:inline-block;">' + label + '</span>' + String(val) + '</span>';
+              list.appendChild(item);
+            }
+
+            var serverStr = r.server || '';
+            if (r.server_os) serverStr += (serverStr ? ' / ' : '') + r.server_os;
+            addItem('server',       serverStr || null);
+            addItem('php',          r.php_version);
+            addItem('cms',          r.cms_detected);
+            addItem('title',        r.title);
+            addItem('jquery',       r.jquery_version);
+            addItem('xmlrpc',       r.xmlrpc ? 'exposed' : null);
+            addItem('redirect',     r.redirect_url);
+
+            sec.appendChild(list);
+            resultsGrid.appendChild(sec);
+          });
+        }
+
+        // Plugins list
+        var pluginsList = document.getElementById('plugins-list');
+        if (pluginsList) {
+          var plugins = d.interesting_plugins || [];
+          if (!plugins.length) {
+            pluginsList.innerHTML = '<p class="empty">No interesting plugins detected.</p>';
+          } else {
+            plugins.forEach(function (name) {
+              var span = document.createElement('span');
+              span.className = 'card-stat plugin-warn';
+              span.textContent = name;
+              pluginsList.appendChild(span);
+            });
+          }
+        }
+      })
+      .catch(function (err) {
+        var box = document.getElementById('error-box');
+        var msg = document.getElementById('error-message');
+        if (box) box.style.display = 'block';
+        if (msg) msg.textContent = 'Failed to load "' + domain + '": ' + err.message;
+      });
+  });
 })();

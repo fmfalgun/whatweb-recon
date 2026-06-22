@@ -1,93 +1,93 @@
 (function () {
   var DATA_URL = 'data/index.json';
 
-  function init() {
+  var EOL_PHP = /^[2-6]\./;
+
+  function cmsBadge(cms) {
+    if (!cms) return '<span class="card-stat cms-none">no CMS</span>';
+    if (cms.toLowerCase().indexOf('wordpress') !== -1) return '<span class="card-stat cms-wp">WordPress</span>';
+    return '<span class="card-stat cms-other">' + cms + '</span>';
+  }
+
+  function phpBadge(ver) {
+    if (!ver) return '<span class="card-stat php-none">no PHP</span>';
+    if (EOL_PHP.test(ver)) return '<span class="card-stat php-eol">' + ver + ' ⚠EOL</span>';
+    return '<span class="card-stat php-ok">' + ver + '</span>';
+  }
+
+  function renderCard(entry) {
+    var card = document.createElement('div');
+    card.className = 'domain-card';
+    card.setAttribute('data-domain', entry.domain);
+
+    var pluginHtml = '';
+    (entry.interesting_plugins || []).forEach(function (name) {
+      pluginHtml += '<span class="card-stat plugin-warn">' + name + '</span>';
+    });
+
+    card.innerHTML =
+      '<div class="card-header-row">' +
+        '<span class="card-domain">' + entry.domain + '</span>' +
+        '<span class="card-date">' + (entry.last_refreshed || entry.queried_at || '').slice(0, 10) + '</span>' +
+      '</div>' +
+      '<div class="card-stats">' +
+        '<span class="card-stat">' + (entry.url_count || 0) + ' URLs</span>' +
+        '<span class="card-stat server-stat">' + (entry.server || '—') + '</span>' +
+        cmsBadge(entry.cms) +
+        phpBadge(entry.php_version) +
+        pluginHtml +
+      '</div>' +
+      '<div class="card-contributor">' +
+        '<span class="card-name">' + (entry.display_name || '') + '</span>' +
+        '<span>' + (entry.display_loc || '') + '</span>' +
+      '</div>';
+
+    card.addEventListener('click', function () {
+      window.location.href = 'domain.html?d=' + encodeURIComponent(entry.domain);
+    });
+    return card;
+  }
+
+  function render(domains) {
+    var list = document.getElementById('domain-list');
+    if (!list) return;
+    list.innerHTML = '';
+    if (!domains.length) { list.innerHTML = '<p class="empty">No results.</p>'; return; }
+    domains.forEach(function (e) { list.appendChild(renderCard(e)); });
+  }
+
+  function applySearch(all) {
+    var input = document.getElementById('search-input');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      render(!q ? all : all.filter(function (e) {
+        return e.domain.toLowerCase().includes(q);
+      }));
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
     fetch(DATA_URL)
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-      .then(function (data) { render(data); })
-      .catch(function (e) { showError('Failed to load data: ' + e.message); });
-  }
-
-  function render(data) {
-    var domains = (data.domains || []).slice().sort(function (a, b) {
-      return a.domain.localeCompare(b.domain);
-    });
-
-    document.getElementById('stat-domains').textContent = domains.length;
-    var cmsCount = domains.filter(function (d) { return d.cms; }).length;
-    var eolCount = domains.filter(function (d) {
-      return d.php_version && /^[2-6]\./.test(d.php_version);
-    }).length;
-    document.getElementById('stat-cms').textContent = cmsCount;
-    document.getElementById('stat-eol').textContent = eolCount;
-
-    var grid = document.getElementById('tech-board-grid');
-    grid.innerHTML = '';
-    domains.forEach(function (d) { grid.appendChild(makeCard(d)); });
-
-    var searchInput = document.getElementById('search-input');
-    if (searchInput) {
-      searchInput.addEventListener('input', function () {
-        var q = this.value.toLowerCase().trim();
-        var cards = grid.querySelectorAll('.tech-card');
-        cards.forEach(function (card) {
-          var match = card.dataset.domain.includes(q) ||
-            (card.dataset.server || '').toLowerCase().includes(q) ||
-            (card.dataset.cms || '').toLowerCase().includes(q);
-          card.style.display = q && !match ? 'none' : '';
+      .then(function (data) {
+        var domains = (data.domains || []).slice().sort(function (a, b) {
+          return a.domain.localeCompare(b.domain);
         });
+
+        var statsEl = document.getElementById('db-stats');
+        if (statsEl) {
+          var withCMS    = domains.filter(function (d) { return d.cms; }).length;
+          var withEOLPHP = domains.filter(function (d) { return d.php_version && EOL_PHP.test(d.php_version); }).length;
+          statsEl.textContent = domains.length + ' domains · ' + withCMS + ' with CMS · ' + withEOLPHP + ' with EOL PHP';
+        }
+
+        render(domains);
+        applySearch(domains);
+      })
+      .catch(function (err) {
+        var list = document.getElementById('domain-list');
+        if (list) list.innerHTML = '<p class="empty">Failed to load: ' + err.message + '</p>';
       });
-    }
-  }
-
-  function makeCard(d) {
-    var art = document.createElement('article');
-    art.className = 'tech-card';
-    art.dataset.domain = d.domain;
-    art.dataset.server = d.server || '';
-    art.dataset.cms    = d.cms    || '';
-
-    var cmsClass   = d.cms ? (d.cms === 'WordPress' ? 'cms-wordpress' : 'cms-other') : 'cms-none';
-    var cmsLabel   = d.cms || 'none';
-    var phpClass   = !d.php_version ? 'php-none' : (/^[2-6]\./.test(d.php_version) ? 'php-eol' : 'php-ok');
-    var phpLabel   = d.php_version || '—';
-    var methodClass = (d.method === 'whatweb') ? 'method-whatweb' : 'method-fallback';
-
-    var pluginTags = '';
-    (d.interesting_plugins || []).forEach(function (p) {
-      pluginTags += '<span class="plugin-tag plugin-warn">' + esc(p) + '</span>';
-    });
-
-    art.innerHTML = [
-      '<div class="tech-card-header">',
-      '  <a class="tech-card-domain" href="domain.html?d=' + esc(d.domain) + '">' + esc(d.domain) + '</a>',
-      '  <span class="method-badge ' + methodClass + '">' + esc(d.method || 'whatweb') + '</span>',
-      '</div>',
-      '<div class="tech-card-meta">',
-      '  <span class="meta-item"><span class="meta-label">server</span><span class="server-badge">' + esc(d.server || '—') + '</span></span>',
-      '  <span class="meta-item"><span class="meta-label">cms</span><span class="cms-badge ' + cmsClass + '">' + esc(cmsLabel) + '</span></span>',
-      '  <span class="meta-item"><span class="meta-label">php</span><span class="php-badge ' + phpClass + '">' + esc(phpLabel) + '</span></span>',
-      '  <span class="meta-item"><span class="meta-label">urls</span><span class="url-count">' + (d.url_count || 0) + '</span></span>',
-      '</div>',
-      pluginTags ? '<div class="plugin-tags">' + pluginTags + '</div>' : '',
-      '<div class="tech-card-footer">',
-      '  <span class="submitter">' + esc(d.display_name || '') + (d.display_loc ? ' \xb7 ' + esc(d.display_loc) : '') + '</span>',
-      '  <a href="domain.html?d=' + esc(d.domain) + '" class="card-detail-link">Detail →</a>',
-      '</div>',
-    ].join('\n');
-
-    return art;
-  }
-
-  function showError(msg) {
-    var box = document.getElementById('error-box');
-    var span = document.getElementById('error-message');
-    if (box && span) { span.textContent = msg; box.style.display = 'block'; }
-  }
-
-  function esc(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-
-  document.addEventListener('DOMContentLoaded', init);
+  });
 })();
