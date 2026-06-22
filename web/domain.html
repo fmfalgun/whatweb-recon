@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Domain Detail — WhatWeb Recon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">WHATWEB-RECON</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="tech-board.html">Tech Board</a>
+    <a href="https://github.com/fmfalgun/whatweb-recon" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    <a href="https://fmfalgun.github.io" target="_blank" rel="noopener noreferrer">Portfolio ↗</a>
+  </div>
+</nav>
+
+<section class="domain-header">
+  <h1 id="domain-title">—</h1>
+  <p id="queried-at-line">data as of <span id="queried-at">—</span></p>
+</section>
+
+<div id="stats-row" class="stats-row">
+  <div class="stat-badge"><span class="stat-value" id="stat-url-count">—</span><span class="stat-label">URLs Scanned</span></div>
+  <div class="stat-badge"><span class="stat-value" id="stat-server">—</span><span class="stat-label">Server</span></div>
+  <div class="stat-badge"><span class="stat-value" id="stat-cms">—</span><span class="stat-label">CMS</span></div>
+  <div class="stat-badge"><span class="stat-value" id="stat-php">—</span><span class="stat-label">PHP Version</span></div>
+</div>
+
+<div id="error-box"><span id="error-message"></span></div>
+
+<section class="section" id="section-exposure">
+  <h2 class="section-title">&gt; SECURITY FLAGS</h2>
+  <div id="exposure-flags-row" class="exposure-flags-row">
+    <!-- JS injects flag badges: xmlrpc / cPanel / WHM / phpMyAdmin / phpPgAdmin -->
+  </div>
+</section>
+
+<section class="section" id="section-results">
+  <h2 class="section-title">&gt; URL RESULTS</h2>
+  <table class="results-table" id="results-table">
+    <thead>
+      <tr>
+        <th>URL</th>
+        <th>Status</th>
+        <th>Server / OS</th>
+        <th>CMS</th>
+        <th>PHP</th>
+        <th>jQuery</th>
+      </tr>
+    </thead>
+    <tbody id="results-tbody"><!-- JS fills this --></tbody>
+  </table>
+</section>
+
+<section class="section" id="section-plugins">
+  <h2 class="section-title">&gt; INTERESTING PLUGINS</h2>
+  <div id="plugins-list" class="plugins-list"><!-- JS fills --></div>
+</section>
+
+<footer class="site-footer">
+  <a href="tech-board.html">← Tech Board</a>
+  <a href="https://github.com/fmfalgun/whatweb-recon" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+</footer>
+
+<script src="assets/js/domain.js"></script>
+</body>
+</html>

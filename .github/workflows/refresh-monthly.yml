@@ -1,0 +1,96 @@
+name: Monthly Refresh
+
+on:
+  schedule:
+    - cron: '0 3 1 * *'   # 1st of each month, 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install WhatWeb
+        run: gem install whatweb
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Refresh active domains
+        run: |
+          python3 - <<'PYEOF'
+          import json, pathlib, datetime, subprocess, sys
+
+          index_file = pathlib.Path("web/data/index.json")
+          index      = json.loads(index_file.read_text())
+          now        = datetime.datetime.now(datetime.timezone.utc)
+          cutoff     = now - datetime.timedelta(days=90)
+
+          refreshed = 0
+          skipped   = 0
+
+          for entry in index.get("domains", []):
+              domain       = entry["domain"]
+              last_str     = entry.get("last_refreshed") or entry.get("queried_at", "")
+              try:
+                  last_dt = datetime.datetime.fromisoformat(last_str.replace("Z", "+00:00"))
+              except Exception:
+                  skipped += 1
+                  continue
+
+              if last_dt < cutoff:
+                  print(f"  skip (stale > 90d): {domain}")
+                  skipped += 1
+                  continue
+
+              out_file = pathlib.Path(f"web/data/domains/{domain}.json")
+              print(f"  refreshing: {domain}")
+              result = subprocess.run(
+                  ["python3", "whatweb-recon.py", "-d", domain,
+                   "-o", str(out_file), "--no-cache"],
+                  capture_output=True, text=True
+              )
+              if result.returncode != 0 and not out_file.exists():
+                  print(f"  [warn] {domain} failed: {result.stderr[:200]}")
+                  continue
+
+              if out_file.exists():
+                  data = json.loads(out_file.read_text())
+                  now_str = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+                  data["display_name"]   = entry.get("display_name")
+                  data["display_loc"]    = entry.get("display_loc")
+                  data["last_refreshed"] = now_str
+                  out_file.write_text(json.dumps(data, indent=2))
+
+                  entry["url_count"]          = data.get("url_count", entry.get("url_count"))
+                  entry["cms"]                = data.get("cms")
+                  entry["server"]             = data.get("server")
+                  entry["php_version"]        = data.get("php_version")
+                  entry["interesting_plugins"]= data.get("interesting_plugins", [])
+                  entry["method"]             = data.get("method", "whatweb")
+                  entry["last_refreshed"]     = now_str
+                  refreshed += 1
+
+          index_file.write_text(json.dumps(index, indent=2))
+          print(f"\nRefreshed: {refreshed}  Skipped: {skipped}")
+          PYEOF
+
+      - name: Commit refreshed data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/data/
+          git diff --cached --quiet || git commit -m "data: monthly refresh [skip ci]"
+          git push

@@ -1,0 +1,40 @@
+name: Build Demo Data
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # daily 02:00 UTC
+  workflow_dispatch:        # manual trigger
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install WhatWeb
+        run: gem install whatweb
+        continue-on-error: true   # fallback to http_fallback mode if gem fails
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run build_demo.py
+        run: python3 build_demo.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/data/
+          git diff --cached --quiet || git commit -m "data: refresh nmap.org demo [skip ci]"
+          git push

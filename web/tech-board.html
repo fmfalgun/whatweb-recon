@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tech Board — WhatWeb Recon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="index.html">WHATWEB-RECON</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="tech-board.html" class="nav-active">Tech Board</a>
+    <a href="https://github.com/fmfalgun/whatweb-recon" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    <a href="https://fmfalgun.github.io" target="_blank" rel="noopener noreferrer">Portfolio ↗</a>
+  </div>
+</nav>
+
+<section class="board-header">
+  <h1>Tech Board</h1>
+  <p>Community-submitted domain fingerprints. Sorted alphabetically.</p>
+  <div id="tb-stats" class="board-stats">
+    <span class="stat-badge"><span class="stat-value" id="stat-domains">—</span><span class="stat-label">Domains</span></span>
+    <span class="stat-badge"><span class="stat-value" id="stat-cms">—</span><span class="stat-label">CMS Found</span></span>
+    <span class="stat-badge"><span class="stat-value" id="stat-eol">—</span><span class="stat-label">EOL PHP</span></span>
+  </div>
+  <div class="board-search-row">
+    <input id="search-input" type="text" class="board-search" placeholder="Filter by domain, server, or CMS...">
+  </div>
+</section>
+
+<div id="error-box"><span id="error-message"></span></div>
+
+<div id="tech-board-grid" class="tech-board-grid">
+  <!-- cards injected by tech-board.js -->
+</div>
+
+<footer class="site-footer">
+  <span>Built by <a href="https://fmfalgun.github.io">fmfalgun</a></span>
+  <span>Data via <a href="https://github.com/urbanadventurer/WhatWeb" target="_blank" rel="noopener noreferrer">WhatWeb</a></span>
+  <a href="https://github.com/fmfalgun/whatweb-recon" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+</footer>
+
+<script src="assets/js/tech-board.js"></script>
+</body>
+</html>

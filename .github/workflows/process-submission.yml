@@ -1,0 +1,127 @@
+name: Process Submission
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  process:
+    if: startsWith(github.event.issue.title, '[submission]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+
+      - name: Install WhatWeb
+        run: gem install whatweb
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Extract domain and metadata from issue
+        id: extract
+        run: |
+          DOMAIN=$(echo "${{ github.event.issue.title }}" | sed 's/\[submission\] //' | tr -d '[:space:]')
+          echo "domain=$DOMAIN" >> $GITHUB_OUTPUT
+
+          # Extract display_name and display_loc from issue body (JSON)
+          BODY='${{ github.event.issue.body }}'
+          DISPLAY_NAME=$(echo "$BODY" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('display_name',''))" 2>/dev/null || echo "")
+          DISPLAY_LOC=$(echo "$BODY" | python3 -c "import json,sys; d=json.load(sys.stdin); print(d.get('display_loc',''))" 2>/dev/null || echo "")
+          echo "display_name=$DISPLAY_NAME" >> $GITHUB_OUTPUT
+          echo "display_loc=$DISPLAY_LOC"   >> $GITHUB_OUTPUT
+
+      - name: Run whatweb-recon
+        run: |
+          python3 whatweb-recon.py \
+            -d "${{ steps.extract.outputs.domain }}" \
+            -o "web/data/domains/${{ steps.extract.outputs.domain }}.json" \
+            --no-cache
+
+      - name: Merge display metadata and update index.json
+        run: |
+          python3 - <<'PYEOF'
+          import json, pathlib, datetime, sys
+
+          domain       = "${{ steps.extract.outputs.domain }}"
+          display_name = "${{ steps.extract.outputs.display_name }}"
+          display_loc  = "${{ steps.extract.outputs.display_loc }}"
+
+          domain_file = pathlib.Path(f"web/data/domains/{domain}.json")
+          if not domain_file.exists():
+              print(f"ERROR: {domain_file} not found", file=sys.stderr)
+              sys.exit(1)
+
+          data = json.loads(domain_file.read_text())
+          now  = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+          data["display_name"]   = display_name or data.get("display_name")
+          data["display_loc"]    = display_loc  or data.get("display_loc")
+          data["last_refreshed"] = now
+
+          domain_file.write_text(json.dumps(data, indent=2))
+
+          # Update index.json
+          index_file = pathlib.Path("web/data/index.json")
+          index = json.loads(index_file.read_text()) if index_file.exists() else {"total_domains": 0, "domains": []}
+
+          entry = {
+              "domain":             domain,
+              "display_name":       data.get("display_name"),
+              "display_loc":        data.get("display_loc"),
+              "queried_at":         data.get("queried_at", now),
+              "last_refreshed":     now,
+              "url_count":          data.get("url_count", 0),
+              "cms":                data.get("cms"),
+              "server":             data.get("server"),
+              "php_version":        data.get("php_version"),
+              "interesting_plugins":data.get("interesting_plugins", []),
+              "method":             data.get("method", "whatweb"),
+          }
+
+          # Upsert
+          domains = [d for d in index.get("domains", []) if d.get("domain") != domain]
+          domains.append(entry)
+          domains.sort(key=lambda x: x["domain"])
+
+          index["total_domains"] = len(domains)
+          index["domains"] = domains
+          index_file.write_text(json.dumps(index, indent=2))
+          print(f"Updated index.json: {len(domains)} domains")
+          PYEOF
+
+      - name: Commit data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/data/
+          git diff --cached --quiet || git commit -m "data: add ${{ steps.extract.outputs.domain }} [skip ci]"
+          git push
+
+      - name: Close issue with confirmation
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              body: `✅ **${{ steps.extract.outputs.domain }}** has been added to the [Tech Board](https://fmfalgun.github.io/whatweb-recon/tech-board.html)!\n\nYour fingerprint will appear after the next Pages deployment.`
+            });
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              issue_number: context.issue.number,
+              state: 'closed'
+            });

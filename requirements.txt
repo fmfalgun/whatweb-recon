@@ -1,0 +1,10 @@
+# whatweb-recon uses the Python standard library only (no pip dependencies).
+#
+# System dependency (not pip):
+#   gem install whatweb
+#   (Ruby gem — see https://github.com/urbanadventurer/WhatWeb)
+#
+# If the whatweb binary is not installed, the script automatically falls back
+# to HTTP fingerprinting mode using urllib.request (stdlib).
+#
+# Python >= 3.8 required.
