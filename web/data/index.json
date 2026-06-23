@@ -5,14 +5,14 @@
       "domain": "nmap.org",
       "display_name": "fmfalgun",
       "display_loc": "Chennai, India",
-      "queried_at": "2026-06-22T05:00:00Z",
-      "last_refreshed": "2026-06-22T05:00:00Z",
-      "url_count": 3,
+      "queried_at": "2026-06-23T06:06:20Z",
+      "last_refreshed": "2026-06-23T06:06:20Z",
+      "url_count": 2,
       "cms": null,
-      "server": "Apache",
+      "server": "Apache/2.4.6 (CentOS)",
       "php_version": null,
       "interesting_plugins": [],
-      "method": "whatweb"
+      "method": "http_fallback"
     }
   ]
 }
