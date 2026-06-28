@@ -1,6 +1,6 @@
 {
   "domain": "nmap.org",
-  "queried_at": "2026-06-27T05:52:57Z",
+  "queried_at": "2026-06-28T06:17:32Z",
   "cached": false,
   "method": "http_fallback",
   "aggression": 3,
@@ -67,5 +67,5 @@
   ],
   "display_name": null,
   "display_loc": null,
-  "last_refreshed": "2026-06-27T05:52:57Z"
+  "last_refreshed": "2026-06-28T06:17:32Z"
 }
