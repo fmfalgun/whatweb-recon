@@ -1,6 +1,6 @@
 {
   "domain": "nmap.org",
-  "queried_at": "2026-07-24T05:19:16Z",
+  "queried_at": "2026-07-25T05:15:39Z",
   "cached": false,
   "method": "http_fallback",
   "aggression": 3,
@@ -39,8 +39,8 @@
     },
     {
       "url": "https://www.nmap.org",
-      "http_status": 200,
-      "server": "Apache/2.4.6 (CentOS)",
+      "http_status": null,
+      "server": null,
       "server_os": null,
       "php_version": null,
       "openssl_version": null,
@@ -50,7 +50,7 @@
       "joomla": false,
       "drupal": false,
       "magento": false,
-      "title": "Nmap: the Network Mapper - Free Security Scanner",
+      "title": null,
       "ip_address": null,
       "redirect_url": null,
       "cpanel": false,
@@ -67,5 +67,5 @@
   ],
   "display_name": null,
   "display_loc": null,
-  "last_refreshed": "2026-07-24T05:19:16Z"
+  "last_refreshed": "2026-07-25T05:15:39Z"
 }
