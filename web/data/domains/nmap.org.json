@@ -1,19 +1,19 @@
 {
   "domain": "nmap.org",
-  "queried_at": "2026-08-06T05:17:37Z",
+  "queried_at": "2026-08-07T04:26:35Z",
   "cached": false,
   "method": "http_fallback",
   "aggression": 3,
   "url_count": 2,
   "cms": null,
-  "server": null,
+  "server": "Apache/2.4.6 (CentOS)",
   "php_version": null,
   "interesting_plugins": [],
   "results": [
     {
       "url": "https://nmap.org",
-      "http_status": null,
-      "server": null,
+      "http_status": 200,
+      "server": "Apache/2.4.6 (CentOS)",
       "server_os": null,
       "php_version": null,
       "openssl_version": null,
@@ -23,7 +23,7 @@
       "joomla": false,
       "drupal": false,
       "magento": false,
-      "title": null,
+      "title": "Nmap: the Network Mapper - Free Security Scanner",
       "ip_address": null,
       "redirect_url": null,
       "cpanel": false,
@@ -40,7 +40,7 @@
     {
       "url": "https://www.nmap.org",
       "http_status": 200,
-      "server": null,
+      "server": "Apache/2.4.6 (CentOS)",
       "server_os": null,
       "php_version": null,
       "openssl_version": null,
@@ -67,5 +67,5 @@
   ],
   "display_name": null,
   "display_loc": null,
-  "last_refreshed": "2026-08-06T05:17:37Z"
+  "last_refreshed": "2026-08-07T04:26:35Z"
 }
