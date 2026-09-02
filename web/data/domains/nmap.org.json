@@ -1,6 +1,6 @@
 {
   "domain": "nmap.org",
-  "queried_at": "2026-09-01T08:16:09Z",
+  "queried_at": "2026-09-02T06:48:59Z",
   "cached": false,
   "method": "http_fallback",
   "aggression": 3,
@@ -65,7 +65,7 @@
       "plugins": {}
     }
   ],
-  "display_name": "fmfalgun",
-  "display_loc": "Chennai, India",
-  "last_refreshed": "2026-09-01T08:16:06Z"
+  "display_name": null,
+  "display_loc": null,
+  "last_refreshed": "2026-09-02T06:48:59Z"
 }
